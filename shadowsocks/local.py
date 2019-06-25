@@ -43,7 +43,7 @@ def main():
 
     # 获取配置字典，包含每个配置项的具体配置值
     config = shell.get_config(True)
-
+    # 根据配置文件当中的关键字daemon决定程序是启动/停止/重启
     daemon.daemon_exec(config)
 
     try:

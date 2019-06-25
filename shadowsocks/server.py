@@ -29,13 +29,15 @@ from shadowsocks import shell, daemon, eventloop, tcprelay, udprelay, \
 
 
 def main():
+    # 检查python版本
     shell.check_python()
-
+    # 获取配置字典
     config = shell.get_config(False)
-
+    # 根据config字典里面daemon的value启动/停止/重启服务
     daemon.daemon_exec(config)
 
     if config['port_password']:
+        # 如果端口密码存在，并且配置了密码，则发出告警，端口密码和密码不能同时设置，此时端口密码将被忽略；
         if config['password']:
             logging.warn('warning: port_password should not be used with '
                          'server_port and password. server_port and password '
@@ -44,12 +46,14 @@ def main():
         config['port_password'] = {}
         server_port = config['server_port']
         if type(server_port) == list:
+            # 如果端口是一个列表，将每个端口的密码设置成整体的密码，否则直接设置端口的密码是password
             for a_server_port in server_port:
                 config['port_password'][a_server_port] = config['password']
         else:
             config['port_password'][str(server_port)] = config['password']
 
     if config.get('manager_address', 0):
+        # 判断manager_address是否存在值，如果不存在设置为0；
         logging.info('entering manager mode')
         manager.run(config)
         return
