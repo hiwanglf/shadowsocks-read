@@ -141,9 +141,14 @@ class SelectLoop(object):
     def close(self):
         pass
 
-
+# 事件循环
 class EventLoop(object):
     def __init__(self):
+        # 在select模块中判断可用的方法，并创建私有变量，select为POSIX标准中的，而 epoll为Linux所特有的。
+        # 当需要读两个以上的I/O的时候，如果使用阻塞式的I/O，那么可能长时间的阻塞在一个描述符上面，
+        # 另外的描述符虽然有数据但是不能读出来，这样实时性不能满足要求
+        # 较好的方式为I/O多路复用，先构造一张有关描述符的列表（epoll中为队列），然后调用一个函数，
+        # 直到这些描述符中的一个准备好时才返回，返回时告诉进程哪些I/O就绪。select和epoll这两个机制都是多路I/O机制的解决方案
         if hasattr(select, 'epoll'):
             self._impl = select.epoll()
             model = 'epoll'
@@ -156,10 +161,14 @@ class EventLoop(object):
         else:
             raise Exception('can not find any available functions in select '
                             'package')
+
         self._fdmap = {}  # (f, handler)
+
+        # 返回当前时间的时间戳（1970纪元后经过的浮点秒数）。
         self._last_time = time.time()
         self._periodic_callbacks = []
         self._stopping = False
+
         logging.debug('using event model: %s', model)
 
     def poll(self, timeout=None):
